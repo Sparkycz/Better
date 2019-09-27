@@ -1,0 +1,47 @@
+{
+  "mappings": {
+    "properties": {
+      "sport_name": {
+        "type": "text"
+      },
+      "competition_name": {
+        "type": "text"
+      },
+      "team1": {
+        "type": "text"
+      },
+      "team2": {
+        "type": "text"
+      },
+      "date": {
+        "type": "date"
+      },
+      "bets": {
+        "type": "nested",
+        "properties": {
+          "bet_type": {
+            "type": "text"
+          },
+          "bet_info": {
+            "type": "text"
+          },
+          "bet": {
+            "type": "float"
+          }
+        }
+      },
+      "team1_points": {
+        "type": "integer"
+      },
+      "team2_points": {
+        "type": "integer"
+      },
+      "correct_bets": {
+        "type": "text"
+      }
+    }
+  },
+  "settings": {
+    "number_of_replicas": 0
+  }
+}

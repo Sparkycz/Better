@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: better-bets
+  namespace: better
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: better
+          image: gcr.io/{your_gcp_project_id}/better:v1.1
+          args: ["ifortuna_bets"]
+          imagePullPolicy: Always
+          env:
+            - name: ELASTICSEARCH_HOST
+              value: better-master:9200
+            - name: PROXY
+              value: http://{apify_credentials}@proxy.apify.com:8000
+  backoffLimit: 1

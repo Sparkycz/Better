@@ -1,0 +1,44 @@
+version: '3'
+services:
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+        container_name: elasticsearch_indexer
+        environment:
+          - cluster.name=docker-cluster
+          - bootstrap.memory_lock=true
+          - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+          - "discovery.zen.ping.unicast.hosts=elasticsearch"
+          - "discovery.type=single-node"
+          - "cluster.max_shards_per_node=10000"
+        ulimits:
+          memlock:
+            soft: -1
+            hard: -1
+        ports:
+          - 9200:9200
+        volumes:
+          - ./es-data:/usr/share/elasticsearch/data
+        networks:
+          mynetwork:
+            aliases:
+              - elasticsearch
+
+    kibana:
+      image: docker.elastic.co/kibana/kibana:7.3.0
+      ports:
+        - "5601:5601"
+      networks:
+        - mynetwork
+
+    service:
+        build: .
+        image: gcr.io/{your_gcp_project_id}/better:v1.1
+        environment:
+          ELASTICSEARCH_HOST: http://elasticsearch:9200
+        command: ["ifortuna_bets"]
+
+
+networks:
+  mynetwork:
+    driver: bridge

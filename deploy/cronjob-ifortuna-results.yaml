@@ -1,0 +1,28 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: better-ifortuna-results
+  namespace: better
+spec:
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 3600
+  suspend: False
+  schedule: "0 6 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          containers:
+            - name: better
+              image: gcr.io/{your_gcp_project_id}/better:v1.1
+              args: ["ifortuna_match_results"]
+              imagePullPolicy: Always
+              env:
+                - name: ELASTICSEARCH_HOST
+                  value: better-master:9200
+                - name: PROXY
+                  value: http://{apify_credentials}@proxy.apify.com:8000
+          restartPolicy: Never
