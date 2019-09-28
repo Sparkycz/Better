@@ -193,6 +193,7 @@ class Match(HtmlObject):
 
     def _parse_teams(self, match_row):
         teams = self.get_text(match_row.findChild(attrs={'class': 'bet_item_detail_href'}))
+        teams = teams.strip()
         team1, team2 = teams.split(' - ')
 
         return team1, team2
