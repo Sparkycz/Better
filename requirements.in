@@ -3,3 +3,6 @@ elasticsearch~=7.0
 llconfig
 beautifulsoup4
 requests
+pandas
+sklearn
+joblib
