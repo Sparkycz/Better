@@ -2,7 +2,7 @@ FROM alpine:3.7
 
 WORKDIR /app
 
-RUN apk add --update --no-cache python3 python3-dev
+RUN apk add --update --no-cache python3 python3-dev gcc g++
 
 RUN pip3 install --upgrade pip
 
