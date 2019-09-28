@@ -56,7 +56,8 @@ class ESIndexer(Indexer):
             mapping = f.read()
         self.es.indices.create(index_name, mapping)
 
-    def _get_document_id(self, sport_name, date, team1, team2):
+    @staticmethod
+    def _get_document_id(sport_name, date, team1, team2):
         doc_id = '{}-{}-{}-{}'.format(sport_name, date, team1, team2)
 
         doc_id = hashlib.md5(doc_id.encode())
@@ -89,7 +90,7 @@ class BetsIndexer(ESIndexer):
                 '_source': {
                     'sport_name': self.sport_name,
                     'competition_name': self.competition_name,
-                    'datetime': _values[0],
+                    'date': _values[0],
                     'team1': _values[1],
                     'team2': _values[2],
                     'bets': _reformat_bets(_values[3])
