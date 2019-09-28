@@ -45,7 +45,7 @@ class Processor():
     def run(self):
         csv_data = pandas.read_csv('models/features.csv', sep=',')
 
-        features = csv_data.drop(['doc_id', 'date', 'sport', 'team_1', 'team_2', 'target'], axis=1)
+        features = csv_data.drop(['doc_id', 'date', 'sport', 'team_1', 'team_2', 'target', 'class'], axis=1)
         targets = csv_data['target']
 
         rfc = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)

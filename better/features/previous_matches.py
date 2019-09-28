@@ -4,19 +4,32 @@ from . import Features
 
 class PreviousMatchesTogether(Features):
 
-    NAMES = ['match_together_count', 'team1_wins', 'team2_wins', 'draw_counts', 'team1_points_sum', 'team2_points_sum']
+    NAMES = [
+        'match_together_count',
+        'team1_wins', 'team2_wins', 'draw_counts',
+        'team1_points_sum', 'team2_points_sum',
+        'last_match_team1_points', 'last_match_team2_points', 'last_match_points_ratio'
+    ]
 
     def get_features(self):
         matches = self._load_previous_matches(self.match_doc_id, self.match_doc)
 
         if not matches:
-            return [0, 0, 0, 0, 0, 0]
+            return [0 for _ in self.NAMES]
 
         _features = [len(matches)]
         _features.extend(self._get_wins_losts(matches))
         _features.extend(self._get_points_summarize(matches))
+        _features.extend(self._get_last_match_points(matches))
 
         return _features
+
+    def _get_last_match_points(self, matches):
+        last_match_team1_points, last_match_team2_points = self._get_points_summarize([matches[0]])
+        ratio = last_match_team1_points - last_match_team2_points
+
+        return [last_match_team1_points, last_match_team2_points, ratio]
+
 
     def _get_wins_losts(self, matches):
         team1_wins, team2_wins, draws = 0, 0, 0

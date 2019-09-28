@@ -4,8 +4,7 @@ import logging
 
 from elasticsearch import Elasticsearch
 
-from better.features import bet_odds, score, previous_matches
-from better.helpers import ElasticsearchWrapper
+from better.helpers import FeaturesBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +48,6 @@ def execute(config, options):
 
 class Processor():
 
-    FEATURE_LIST = [
-        bet_odds.BetOdds,
-        score.Score,
-        previous_matches.PreviousMatchesTogether,
-    ]
-
     def __init__(self, config, es: Elasticsearch):
         self.config = config
         self.es = es
@@ -62,11 +55,11 @@ class Processor():
         self.csvfile = open('models/features.csv', 'w')
         self.csvwriter = csv.writer(self.csvfile)
 
-        _feature_names = ['doc_id', 'date', 'sport', 'team_1', 'team_2']
-        for feature_class in self.FEATURE_LIST:
-            _feature_names.extend(feature_class.NAMES)
+        self.features_builder = FeaturesBuilder(self.es)
 
-        _feature_names.append('target')
+        _feature_names = ['doc_id', 'date', 'sport', 'team_1', 'team_2']
+        _feature_names.extend(self.features_builder.get_feature_names())
+        _feature_names.extend(['target', 'class'])
 
         self.csvwriter.writerow(_feature_names)
 
@@ -79,19 +72,16 @@ class Processor():
             logger.info('Calculating of {}, {}, {}, {}'.format(doc_id, doc['date'], doc['team1'], doc['team2']))
 
             features_list = [doc_id, doc['date'], doc['sport_name'], doc['team1'], doc['team2']]
-            for features in self._load_features(doc_id, doc):
+            for features in self.features_builder.load_features(doc_id, doc):
                 features_list.extend(features)
 
-            features_list.append("class_" + target)
+            features_list.append(target)
+            if target == "1": class_ = "vyhra_domaci"
+            elif target == "2": class_ = "vyhra_hoste"
+            else: class_ = "remiza"
+            features_list.append(class_)
 
             self.csvwriter.writerow(features_list)
-
-    def _load_features(self, doc_id, doc):
-        _es = ElasticsearchWrapper(self.es, INDEX_NAME)
-
-        for feature_class in self.FEATURE_LIST:
-            feature_class_instance = feature_class(_es, doc_id, doc)
-            yield feature_class_instance.get_features()
 
     def _get_candidates(self):
         es_candidates = self._load_candidates_from_es()
@@ -116,6 +106,3 @@ class Processor():
         es_result = self.es.search(INDEX_NAME, body=query)
 
         return es_result['hits']['hits']
-
-
-
