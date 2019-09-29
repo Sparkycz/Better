@@ -12,11 +12,6 @@ logger = logging.getLogger(__name__)
 INDEX_NAME = 'matches'
 
 ROW_COUNT_BY_SPORT = 50
-SPORTS = [
-    'fotbal',
-    'hokej',
-    'basketbal'
-]
 
 
 def get_argparse_options():
