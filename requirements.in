@@ -6,3 +6,4 @@ requests
 pandas
 sklearn
 joblib
+cython

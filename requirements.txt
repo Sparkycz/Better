@@ -7,6 +7,7 @@
 beautifulsoup4==4.8.0
 certifi==2019.9.11        # via requests
 chardet==3.0.4            # via requests
+cython==0.29.13
 elasticsearch==7.0.4
 idna==2.8                 # via requests
 joblib==0.13.2
