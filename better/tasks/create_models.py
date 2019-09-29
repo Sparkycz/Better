@@ -31,19 +31,21 @@ def set_arguments(parser):
 def execute(config, options):
     """Main task function to be executed via launcher."""
 
-    processor = Processor(config)
-    processor.run()
+    for sport in config['SPORTS']:
+        processor = Processor(config, sport)
+        processor.run()
 
     logger.info("All done. Bye!")
 
 
 class Processor():
 
-    def __init__(self, config):
+    def __init__(self, config, sport):
         self.config = config
+        self.sport = sport
 
     def run(self):
-        csv_data = pandas.read_csv('models/features.csv', sep=',')
+        csv_data = pandas.read_csv(f'models/features_{self.sport}.csv', sep=',')
 
         features = csv_data.drop(['doc_id', 'date', 'sport', 'team_1', 'team_2', 'target', 'class'], axis=1)
         targets = csv_data['target']
@@ -51,4 +53,4 @@ class Processor():
         rfc = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
         rfc.fit(features, targets)
 
-        joblib.dump(rfc, 'models/random_forest_classifier.pkl', compress=True)
+        joblib.dump(rfc, f'models/random_forest_classifier_{self.sport}.pkl', compress=True)

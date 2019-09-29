@@ -46,17 +46,19 @@ def execute(config, options):
 
     es = Elasticsearch(es_host)
 
-    processor = Processor(config, es)
-    processor.run()
+    for sport in config['SPORTS']:
+        processor = Processor(config, es, sport)
+        processor.run()
 
     logger.info("All done. Bye!")
 
 
 class Processor():
 
-    def __init__(self, config, es: Elasticsearch):
+    def __init__(self, config, es: Elasticsearch, sport):
         self.config = config
         self.es = es
+        self.sport = sport
 
         self.features_builder = FeaturesBuilder(self.es)
 
@@ -64,20 +66,12 @@ class Processor():
         _feature_names.extend(self.features_builder.get_feature_names())
         _feature_names.append('target')
 
-        self.model = joblib.load('models/random_forest_classifier.pkl')
+        self.model = joblib.load(f'models/random_forest_classifier_{self.sport}.pkl')
 
     def run(self):
-        bets = {}
-        for sport in SPORTS:
-            bets[sport] = self.process_sport(sport)
-
-        for sport_name, bets_df in bets.items():
-            logger.info(f"\nBet tips of \n{sport_name} for you: \n" + str(bets_df))
-
-    def process_sport(self, sport):
         features_list = []
         docs = []
-        for doc_id, doc in self._get_candidates(sport):
+        for doc_id, doc in self._get_candidates():
             docs.append(doc)
             features_list.append(self._load_features(doc_id, doc))
 
@@ -95,7 +89,8 @@ class Processor():
         df = pandas.DataFrame(df_data, columns=['date', 'team1', 'team2', 'bet_odds', 'prediction', 'probability'])
         df = df.sort_values(by=['probability'], ascending=False)
 
-        return df.head()  # the 5 most probability bets
+        best_tips = df.head()  # the 5 most probability bets
+        logger.info(f"\nBet tips of {self.sport} for you: \n" + str(best_tips))
 
     def _predict(self, features_list):
         predictions = self.model.predict(features_list)
@@ -112,13 +107,13 @@ class Processor():
 
         return features
 
-    def _get_candidates(self, sport):
-        es_candidates = self._load_candidates_from_es(sport)
+    def _get_candidates(self):
+        es_candidates = self._load_candidates_from_es()
 
         for doc in es_candidates:
             yield doc['_id'], doc['_source']
 
-    def _load_candidates_from_es(self, sport):
+    def _load_candidates_from_es(self):
         query = {
             "query": {
                 "bool": {
@@ -126,7 +121,7 @@ class Processor():
                         {
                             "term": {
                                 "sport_name": {
-                                    "value": sport
+                                    "value": self.sport
                                 }
                             }
                         },

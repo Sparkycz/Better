@@ -37,22 +37,23 @@ def execute(config, options):
     """Main task function to be executed via launcher."""
 
     es_host = config['ELASTICSEARCH_HOST']
-
     es = Elasticsearch(es_host)
 
-    processor = Processor(config, es)
-    processor.run()
+    for sport in config['SPORTS']:
+        processor = Processor(config, es, sport)
+        processor.run()
 
     logger.info("All done. Bye!")
 
 
 class Processor():
 
-    def __init__(self, config, es: Elasticsearch):
+    def __init__(self, config, es: Elasticsearch, sport):
         self.config = config
         self.es = es
+        self.sport = sport
 
-        self.csvfile = open('models/features.csv', 'w')
+        self.csvfile = open(f'models/features_{self.sport}.csv', 'w')
         self.csvwriter = csv.writer(self.csvfile)
 
         self.features_builder = FeaturesBuilder(self.es)
@@ -99,7 +100,20 @@ class Processor():
     def _load_candidates_from_es(self):
         query = {
             "query": {
-                "exists" : { "field" : "correct_bets" }
+                "bool": {
+                    "must": [
+                        {
+                            "term": {
+                                "sport_name": {
+                                    "value": self.sport
+                                }
+                            }
+                        }
+                    ],
+                    "filter": {
+                        "exists" : { "field" : "correct_bets" }
+                    }
+                }
             },
             "size": ROW_COUNT
         }
