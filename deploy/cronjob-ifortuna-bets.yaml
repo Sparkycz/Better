@@ -17,7 +17,7 @@ spec:
         spec:
           containers:
             - name: better
-              image: gcr.io/{your_gcp_project_id}/better:v1.1
+              image: gcr.io/{your_gcp_project_id}/better:v1.3
               args: ["ifortuna_bets"]
               imagePullPolicy: Always
               env:
