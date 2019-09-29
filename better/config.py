@@ -9,7 +9,7 @@ def init_config():
 
     c = Config(env_prefix='')
 
-    c.init('SPORTS', list, ['fotbal', 'hokej', 'basketbal'])
+    c.init('SPORTS', list, ['fotbal', 'hokej', 'basketbal', 'hazena', 'baseball', 'florbal', 'futsal', 'ragby'])
 
     c.init('PROXY', str)
 
