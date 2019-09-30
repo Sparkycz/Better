@@ -32,6 +32,7 @@ def execute(config, options):
     """Main task function to be executed via launcher."""
 
     for sport in config['SPORTS']:
+        logger.info(f'Creating model of {sport}')
         processor = Processor(config, sport)
         processor.run()
 
@@ -50,7 +51,10 @@ class Processor():
         features = csv_data.drop(['doc_id', 'date', 'sport', 'team_1', 'team_2', 'target', 'class'], axis=1)
         targets = csv_data['target']
 
-        rfc = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
-        rfc.fit(features, targets)
+        if not targets.empty:
+            rfc = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+            rfc.fit(features, targets)
 
-        joblib.dump(rfc, f'models/random_forest_classifier_{self.sport}.pkl', compress=True)
+            joblib.dump(rfc, f'models/random_forest_classifier_{self.sport}.pkl', compress=True)
+        else:
+            logger.info('No data.')
