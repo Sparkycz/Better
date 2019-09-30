@@ -2,6 +2,7 @@
 import logging
 
 from elasticsearch import Elasticsearch
+from sklearn.ensemble import RandomForestClassifier
 import joblib
 import pandas
 
@@ -42,6 +43,7 @@ def execute(config, options):
     es = Elasticsearch(es_host)
 
     for sport in config['SPORTS']:
+        logger.info(f'Start predicting matches of {sport}')
         processor = Processor(config, es, sport)
         processor.run()
 
@@ -61,21 +63,32 @@ class Processor():
         _feature_names.extend(self.features_builder.get_feature_names())
         _feature_names.append('target')
 
-        self.model = joblib.load(f'models/random_forest_classifier_{self.sport}.pkl')
+        try:
+            self.model = joblib.load(f'models/random_forest_classifier_{self.sport}.pkl')
+            """RandomForestClassifier"""
+        except FileNotFoundError:
+            self.model = None
 
     def run(self):
+        if not self.model:
+            logger.info('No model for that sport.')
+            return
+
         features_list = []
         docs = []
         for doc_id, doc in self._get_candidates():
             docs.append(doc)
             features_list.append(self._load_features(doc_id, doc))
 
+        if not features_list:
+            logger.info('No candidates for prediction')
+            return
         predictions, probabilities = self._predict(features_list)
 
         df_data = []
         for i, doc in enumerate(docs):
             df_data.append([
-                doc['datetime'], doc['team1'], doc['team2'],
+                doc['date'], doc['team1'], doc['team2'],
                 self.get_bet_odds_by_bet_type(doc, predictions[i]),
                 predictions[i],
                 probabilities[i],
@@ -91,7 +104,10 @@ class Processor():
         predictions = self.model.predict(features_list)
         probabilities = []
         for __probabilities, __prediction in zip(self.model.predict_proba(features_list), predictions):
-            probabilities.append(__probabilities[__prediction])
+            if len(__probabilities) == 3:  # sports with draws
+                probabilities.append(__probabilities[__prediction])
+            else:  # sports without draws
+                probabilities.append(__probabilities[__prediction - 1])
 
         return predictions, probabilities
 
@@ -122,7 +138,7 @@ class Processor():
                         },
                         {
                             "range": {
-                                "datetime": {
+                                "date": {
                                     "gte": "now/d",
                                     "lte": "now+2d/d"
                                 }
