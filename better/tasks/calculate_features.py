@@ -108,13 +108,23 @@ class Processor():
                                     "value": self.sport
                                 }
                             }
+                        },
+                        {
+                            "range": {
+                                "date": {
+                                    "lte": "now-1d/d"
+                                }
+                            }
                         }
                     ],
                     "filter": {
-                        "exists" : { "field" : "correct_bets" }
+                        "exists": {"field": "correct_bets"}
                     }
                 }
             },
+            "sort": [
+                {"date": {"order": "desc"}}
+            ],
             "size": ROW_COUNT
         }
         es_result = self.es.search(INDEX_NAME, body=query)
