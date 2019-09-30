@@ -69,8 +69,14 @@ class PreviousMatchesTogether(Features):
                 "bool": {
                     "must": [
                         {
-                            "exists" : { "field" : "correct_bets" }
-                        }
+                            "exists": {"field": "correct_bets"}
+                        },
+                        {
+                            "exists": {"field": "team1_points"}
+                        },
+                        {
+                            "exists": {"field": "team2_points"}
+                        },
                     ],
                     "must_not": [
                         {
